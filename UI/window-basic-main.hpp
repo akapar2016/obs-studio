@@ -378,6 +378,7 @@ private:
 	volatile bool previewProgramMode = false;
 	obs_hotkey_id togglePreviewProgramHotkey = 0;
 	obs_hotkey_id transitionHotkey = 0;
+	obs_hotkey_id toggleAutoSceneSwitcherHotkey = 0;
 	int quickTransitionIdCounter = 1;
 	bool overridingTransition = false;
 
