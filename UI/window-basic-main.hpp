@@ -21,6 +21,7 @@
 #include <QAction>
 #include <QWidgetAction>
 #include <QSystemTrayIcon>
+#include <QStyledItemDelegate>
 #include <obs.hpp>
 #include <vector>
 #include <memory>
@@ -673,6 +674,8 @@ private slots:
 	void on_actionFitToScreen_triggered();
 	void on_actionStretchToScreen_triggered();
 	void on_actionCenterToScreen_triggered();
+	void on_actionVerticalCenter_triggered();
+	void on_actionHorizontalCenter_triggered();
 
 	void on_scenes_currentItemChanged(QListWidgetItem *current,
 			QListWidgetItem *prev);
@@ -816,4 +819,13 @@ public:
 
 private:
 	std::unique_ptr<Ui::OBSBasic> ui;
+};
+
+class SceneRenameDelegate : public QStyledItemDelegate {
+	Q_OBJECT
+
+public:
+	SceneRenameDelegate(QObject *parent);
+	virtual void setEditorData(QWidget *editor, const QModelIndex &index)
+		const override;
 };

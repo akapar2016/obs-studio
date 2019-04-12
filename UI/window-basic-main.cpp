@@ -258,6 +258,8 @@ OBSBasic::OBSBasic(QWidget *parent)
 	ui->scenes->setAttribute(Qt::WA_MacShowFocusRect, false);
 	ui->sources->setAttribute(Qt::WA_MacShowFocusRect, false);
 
+	ui->scenes->setItemDelegate(new SceneRenameDelegate(ui->scenes));
+
 	auto displayResize = [this]() {
 		struct obs_video_info ovi;
 
@@ -788,13 +790,18 @@ static void LogFilter(obs_source_t*, obs_source_t *filter, void *v_val)
 	blog(LOG_INFO, "%s- filter: '%s' (%s)", indent.c_str(), name, id);
 }
 
-static bool LogSceneItem(obs_scene_t*, obs_sceneitem_t *item, void*)
+static bool LogSceneItem(obs_scene_t*, obs_sceneitem_t *item, void *v_val)
 {
 	obs_source_t *source = obs_sceneitem_get_source(item);
 	const char *name = obs_source_get_name(source);
 	const char *id = obs_source_get_id(source);
+	int indent_count = (int)(intptr_t)v_val;
+	string indent;
 
-	blog(LOG_INFO, "    - source: '%s' (%s)", name, id);
+	for (int i = 0; i < indent_count; i++)
+		indent += "    ";
+
+	blog(LOG_INFO, "%s- source: '%s' (%s)", indent.c_str(), name, id);
 
 	obs_monitoring_type monitoring_type =
 		obs_source_get_monitoring_type(source);
@@ -805,10 +812,12 @@ static bool LogSceneItem(obs_scene_t*, obs_sceneitem_t *item, void*)
 			? "monitor only"
 			: "monitor and output";
 
-		blog(LOG_INFO, "        - monitoring: %s", type);
+		blog(LOG_INFO, "    %s- monitoring: %s", indent.c_str(), type);
 	}
-
-	obs_source_enum_filters(source, LogFilter, (void*)(intptr_t)2);
+	int child_indent = 1 + indent_count;
+	obs_source_enum_filters(source, LogFilter, (void*)(intptr_t)child_indent);
+	if (obs_sceneitem_is_group(item))
+		obs_sceneitem_group_enum_items(item, LogSceneItem, (void*)(intptr_t)child_indent);
 	return true;
 }
 
@@ -825,7 +834,7 @@ void OBSBasic::LogScenes()
 		const char *name = obs_source_get_name(source);
 
 		blog(LOG_INFO, "- scene '%s':", name);
-		obs_scene_enum_items(scene, LogSceneItem, nullptr);
+		obs_scene_enum_items(scene, LogSceneItem, (void*)(intptr_t)1);
 		obs_source_enum_filters(source, LogFilter, (void*)(intptr_t)1);
 	}
 
@@ -3327,6 +3336,8 @@ void OBSBasic::DrawBackdrop(float cx, float cy)
 	if (!box)
 		return;
 
+	GS_DEBUG_MARKER_BEGIN(GS_DEBUG_COLOR_DEFAULT, "DrawBackdrop");
+
 	gs_effect_t    *solid = obs_get_base_effect(OBS_EFFECT_SOLID);
 	gs_eparam_t    *color = gs_effect_get_param_by_name(solid, "color");
 	gs_technique_t *tech  = gs_effect_get_technique(solid, "Solid");
@@ -3349,10 +3360,14 @@ void OBSBasic::DrawBackdrop(float cx, float cy)
 	gs_technique_end(tech);
 
 	gs_load_vertexbuffer(nullptr);
+
+	GS_DEBUG_MARKER_END();
 }
 
 void OBSBasic::RenderMain(void *data, uint32_t cx, uint32_t cy)
 {
+	GS_DEBUG_MARKER_BEGIN(GS_DEBUG_COLOR_DEFAULT, "RenderMain");
+
 	OBSBasic *window = static_cast<OBSBasic*>(data);
 	obs_video_info ovi;
 
@@ -3383,7 +3398,6 @@ void OBSBasic::RenderMain(void *data, uint32_t cx, uint32_t cy)
 
 	window->DrawBackdrop(float(ovi.base_width), float(ovi.base_height));
 
-
 	if (window->IsPreviewProgramMode()) {
 		OBSScene scene = window->GetCurrentScene();
 		obs_source_t *source = obs_scene_get_source(scene);
@@ -3408,6 +3422,8 @@ void OBSBasic::RenderMain(void *data, uint32_t cx, uint32_t cy)
 
 	gs_projection_pop();
 	gs_viewport_pop();
+
+	GS_DEBUG_MARKER_END();
 
 	UNUSED_PARAMETER(cx);
 	UNUSED_PARAMETER(cy);
@@ -6106,20 +6122,39 @@ void OBSBasic::on_actionStretchToScreen_triggered()
 			&boundsType);
 }
 
-static bool center_to_scene(obs_scene_t *, obs_sceneitem_t *item, void *)
+enum class CenterType {
+	Scene,
+	Vertical,
+	Horizontal
+};
+
+static bool center_to_scene(obs_scene_t *, obs_sceneitem_t *item, void *param)
 {
+	CenterType centerType = *reinterpret_cast<CenterType*>(param);
+
 	vec3 tl, br, itemCenter, screenCenter, offset;
 	obs_video_info ovi;
+	obs_transform_info oti;
 
 	if (obs_sceneitem_is_group(item))
-		obs_sceneitem_group_enum_items(item, center_to_scene, nullptr);
+		obs_sceneitem_group_enum_items(item, center_to_scene,
+				&centerType);
 	if (!obs_sceneitem_selected(item))
 		return true;
 
 	obs_get_video_info(&ovi);
+	obs_sceneitem_get_info(item, &oti);
 
-	vec3_set(&screenCenter, float(ovi.base_width),
-			float(ovi.base_height), 0.0f);
+	if (centerType == CenterType::Scene)
+		vec3_set(&screenCenter, float(ovi.base_width),
+				float(ovi.base_height), 0.0f);
+	else if (centerType == CenterType::Vertical)
+		vec3_set(&screenCenter, float(oti.bounds.x),
+				float(ovi.base_height), 0.0f);
+	else if (centerType == CenterType::Horizontal)
+		vec3_set(&screenCenter, float(ovi.base_width),
+				float(oti.bounds.y), 0.0f);
+
 	vec3_mulf(&screenCenter, &screenCenter, 0.5f);
 
 	GetItemBox(item, tl, br);
@@ -6131,13 +6166,31 @@ static bool center_to_scene(obs_scene_t *, obs_sceneitem_t *item, void *)
 	vec3_sub(&offset, &screenCenter, &itemCenter);
 	vec3_add(&tl, &tl, &offset);
 
+	if (centerType == CenterType::Vertical)
+		tl.x = oti.pos.x;
+	else if (centerType == CenterType::Horizontal)
+		tl.y = oti.pos.y;
+
 	SetItemTL(item, tl);
 	return true;
 };
 
 void OBSBasic::on_actionCenterToScreen_triggered()
 {
-	obs_scene_enum_items(GetCurrentScene(), center_to_scene, nullptr);
+	CenterType centerType = CenterType::Scene;
+	obs_scene_enum_items(GetCurrentScene(), center_to_scene, &centerType);
+}
+
+void OBSBasic::on_actionVerticalCenter_triggered()
+{
+	CenterType centerType = CenterType::Vertical;
+	obs_scene_enum_items(GetCurrentScene(), center_to_scene, &centerType);
+}
+
+void OBSBasic::on_actionHorizontalCenter_triggered()
+{
+	CenterType centerType = CenterType::Horizontal;
+	obs_scene_enum_items(GetCurrentScene(), center_to_scene, &centerType);
 }
 
 void OBSBasic::EnablePreviewDisplay(bool enable)
@@ -7193,4 +7246,18 @@ bool OBSBasic::ReplayBufferActive()
 	if (!outputHandler)
 		return false;
 	return outputHandler->ReplayBufferActive();
+}
+
+SceneRenameDelegate::SceneRenameDelegate(QObject *parent)
+	: QStyledItemDelegate(parent)
+{
+}
+
+void SceneRenameDelegate::setEditorData(QWidget *editor,
+		const QModelIndex &index) const
+{
+	QStyledItemDelegate::setEditorData(editor, index);
+	QLineEdit *lineEdit = qobject_cast<QLineEdit*>(editor);
+	if (lineEdit)
+		lineEdit->selectAll();
 }
