@@ -5990,7 +5990,7 @@ static bool RotateSelectedSources(obs_scene_t *scene, obs_sceneitem_t *item,
 
 	rot += obs_sceneitem_get_rot(item);
 	if (rot >= 360.0f)       rot -= 360.0f;
-	else if (rot <= -360.0f) rot += 360.0f;
+	else if (rot <= 0.0)	 rot += 360.0f;
 	obs_sceneitem_set_rot(item, rot);
 
 	obs_sceneitem_force_update_transform(item);
@@ -6076,10 +6076,19 @@ static bool CenterAlignSelectedItems(obs_scene_t *scene, obs_sceneitem_t *item,
 	obs_get_video_info(&ovi);
 
 	obs_transform_info itemInfo;
-	vec2_set(&itemInfo.pos, 0.0f, 0.0f);
-	vec2_set(&itemInfo.scale, 1.0f, 1.0f);
-	itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_TOP;
-	itemInfo.rot = 0.0f;
+	itemInfo.rot = obs_sceneitem_get_rot(item);
+	obs_sceneitem_get_scale(item, &itemInfo.scale);
+	obs_sceneitem_get_pos(item, &itemInfo.pos);
+
+	if (itemInfo.rot == 0.0f || itemInfo.rot == 360.0f)
+		itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_TOP;
+	if (itemInfo.rot == 270.0f)
+		itemInfo.alignment = OBS_ALIGN_RIGHT | OBS_ALIGN_TOP;
+
+	if (itemInfo.rot == 180.0f)
+		itemInfo.alignment = OBS_ALIGN_RIGHT | OBS_ALIGN_BOTTOM;
+	if (itemInfo.rot == 90.0f)
+		itemInfo.alignment = OBS_ALIGN_LEFT | OBS_ALIGN_BOTTOM;
 
 	vec2_set(&itemInfo.bounds,
 			float(ovi.base_width), float(ovi.base_height));
