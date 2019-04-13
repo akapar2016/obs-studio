@@ -7,6 +7,7 @@
 #include <QAction>
 #include "auto-scene-switcher.hpp"
 #include "tool-helpers.hpp"
+#include "obs-hotkey.h"
 
 #include <condition_variable>
 #include <chrono>

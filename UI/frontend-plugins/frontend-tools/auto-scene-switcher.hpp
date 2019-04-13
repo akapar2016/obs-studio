@@ -6,6 +6,7 @@
 #include <string>
 
 #include "ui_auto-scene-switcher.h"
+#include "..\..\UI\window-basic-main.hpp"
 
 struct obs_weak_source;
 typedef struct obs_weak_source obs_weak_source_t;

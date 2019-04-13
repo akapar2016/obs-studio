@@ -2213,8 +2213,7 @@ void OBSBasic::CreateHotkeys()
 			Str("Transition"), transition, this);
 	LoadHotkey(transitionHotkey, "OBSBasic.Transition");
 
-
-	auto toggleAutoSceneSwitcher = [](void *data, obs_hotkey_id, obs_hotkey_t*,
+	auto toggleAutoSceneSwitcher = [] (void *data, obs_hotkey_id, obs_hotkey_t*,
 		bool pressed)
 	{
 		if (pressed)
