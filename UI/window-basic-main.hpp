@@ -764,6 +764,7 @@ private slots:
 	void MoveSceneToTop();
 	void MoveSceneToBottom();
 
+	bool eventFilter(QObject *object, QEvent *event);
 	void EditSceneName();
 	void EditSceneItemName();
 

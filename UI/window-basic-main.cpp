@@ -3973,6 +3973,20 @@ void OBSBasic::on_scenes_currentItemChanged(QListWidgetItem *current,
 	UNUSED_PARAMETER(prev);
 }
 
+bool OBSBasic::eventFilter(QObject *object, QEvent *event)
+{
+	if (event->type() == QEvent::KeyRelease) {
+		QKeyEvent* key = static_cast<QKeyEvent*>(event);
+		//QString name = "testing";
+		QString name = ui->scenes->currentItem()->text();
+		if (key->key() == Qt::Key_Escape) {
+			ui->scenes->currentItem()->setText(name);
+			return true;
+		}
+	}
+	return false;
+}
+
 void OBSBasic::EditSceneName()
 {
 	QListWidgetItem *item = ui->scenes->currentItem();
@@ -3980,6 +3994,7 @@ void OBSBasic::EditSceneName()
 
 	item->setFlags(flags | Qt::ItemIsEditable);
 	ui->scenes->editItem(item);
+	ui->scenes->installEventFilter(this);
 	item->setFlags(flags);
 }
 
