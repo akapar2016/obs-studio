@@ -2212,20 +2212,6 @@ void OBSBasic::CreateHotkeys()
 			"OBSBasic.Transition",
 			Str("Transition"), transition, this);
 	LoadHotkey(transitionHotkey, "OBSBasic.Transition");
-
-	auto toggleAutoSceneSwitcher = [] (void *data, obs_hotkey_id, obs_hotkey_t*,
-		bool pressed)
-	{
-		if (pressed)
-			QMetaObject::invokeMethod(static_cast<OBSBasic*>(data),
-				"AutoSceneSwitcherToggleClicked",
-				Qt::QueuedConnection);
-	};
-
-	toggleAutoSceneSwitcherHotkey = obs_hotkey_register_frontend(
-		"OBSBasic.AutoSceneSwitcherToggle",
-		Str("Toggle Automatic Scene Switcher"), toggleAutoSceneSwitcher, this);
-	LoadHotkey(toggleAutoSceneSwitcherHotkey, "OBSBasic.AutoSceneSwitcherToggle");
 }
 
 void OBSBasic::ClearHotkeys()
@@ -2236,7 +2222,6 @@ void OBSBasic::ClearHotkeys()
 	obs_hotkey_unregister(forceStreamingStopHotkey);
 	obs_hotkey_unregister(togglePreviewProgramHotkey);
 	obs_hotkey_unregister(transitionHotkey);
-	obs_hotkey_unregister(toggleAutoSceneSwitcherHotkey);
 }
 
 OBSBasic::~OBSBasic()

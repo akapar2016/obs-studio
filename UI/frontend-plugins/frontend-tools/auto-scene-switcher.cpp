@@ -9,6 +9,7 @@
 #include "tool-helpers.hpp"
 #include "obs-hotkey.h"
 
+
 #include <condition_variable>
 #include <chrono>
 #include <string>
@@ -327,12 +328,20 @@ void SceneSwitcher::SetStarted()
 {
 	ui->toggleStartButton->setText(obs_module_text("Stop"));
 	ui->pluginRunningText->setText(obs_module_text("Active"));
+
+	int idx = (int)autosceneSwitch.size() - 1;
+	AddAutoSceneSwitcherHotkey(&autosceneSwitch[idx]);
+	obs_hotkey_load(autosceneSwitch[idx].hotkey,
+		hotkeys);
 }
 
 void SceneSwitcher::SetStopped()
 {
 	ui->toggleStartButton->setText(obs_module_text("Start"));
 	ui->pluginRunningText->setText(obs_module_text("Inactive"));
+
+	for (AutoSwitcher &qt : autosceneSwitch)
+		RemoveAutoSceneSwitcherHotkey(&qt);
 }
 
 void SceneSwitcher::on_toggleStartButton_clicked()
@@ -344,6 +353,37 @@ void SceneSwitcher::on_toggleStartButton_clicked()
 		switcher->Start();
 		SetStarted();
 	}
+}
+
+void SceneSwitcher::AddAutoSceneSwitcherHotkey(AutoSwitcher *qt)
+{
+	auto toggleAutoSceneSwitcher = [](void *data, obs_hotkey_id, obs_hotkey_t*,
+		bool pressed)
+	{
+		if (pressed)
+			QMetaObject::invokeMethod(static_cast<SceneSwitcher*>(data),
+				"AutoSceneSwitcherToggleClicked",
+				Qt::QueuedConnection);
+	};
+
+	qt->hotkey = obs_hotkey_register_frontend(
+		"SceneSwitcher.on_toggleStartButton_clicked",
+		Str("Toggle Automatic Scene Switcher"), toggleAutoSceneSwitcher,
+		(void*)(uintptr_t)qt->id);
+}
+
+void AutoSwitcher::SourceRenamed(void *param, calldata_t *data)
+{
+	AutoSwitcher *qt = reinterpret_cast<AutoSwitcher*>(param);
+
+	obs_hotkey_set_description(qt->hotkey, Str("Toggle Automatic Scene Switcher"));
+
+	UNUSED_PARAMETER(data);
+}
+
+void SceneSwitcher::RemoveAutoSceneSwitcherHotkey(AutoSwitcher *qt)
+{
+	obs_hotkey_unregister(qt->hotkey);
 }
 
 static void SaveSceneSwitcher(obs_data_t *save_data, bool saving, void *)
@@ -566,3 +606,35 @@ extern "C" void InitSceneSwitcher()
 
 	action->connect(action, &QAction::triggered, cb);
 }
+
+
+
+/*	void OBSBasic::LoadQuickTransitions()
+{
+	quickTransitionIdCounter = 1;
+
+		obs_data_t *data = obs_data_array_item(array, i);
+		obs_data_array_t *hotkeys = obs_data_get_array(data, "hotkeys");
+		const char *name = obs_data_get_string(data, "name");
+		int duration = obs_data_get_int(data, "duration");
+		int id = obs_data_get_int(data, "id");
+
+		if (id) {
+			obs_source_t *source = FindTransition(name);
+			if (source) {
+				quickTransitions.emplace_back(source, duration,
+						id);
+
+				if (quickTransitionIdCounter <= id)
+					quickTransitionIdCounter = id + 1;
+
+				int idx = (int)quickTransitions.size() - 1;
+				AddQuickTransitionHotkey(&quickTransitions[idx]);
+				obs_hotkey_load(quickTransitions[idx].hotkey,
+						hotkeys);
+			}
+		}
+
+		obs_data_release(data);
+		obs_data_array_release(hotkeys);
+}*/

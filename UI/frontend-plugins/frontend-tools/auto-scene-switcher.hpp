@@ -8,10 +8,33 @@
 #include "ui_auto-scene-switcher.h"
 #include "..\..\UI\window-basic-main.hpp"
 
+
 struct obs_weak_source;
 typedef struct obs_weak_source obs_weak_source_t;
 
 class QCloseEvent;
+
+struct AutoSwitcher {
+	QPushButton *button = nullptr;
+	OBSSource source;
+	obs_hotkey_id hotkey = OBS_INVALID_HOTKEY_ID;
+	int duration = 0;
+	int id = 0;
+
+	inline AutoSwitcher() {}
+	inline AutoSwitcher(OBSSource source_, int duration_, int id_)
+		: source(source_),
+		duration(duration_),
+		id(id_),
+		renamedSignal(std::make_shared<OBSSignal>(
+			obs_source_get_signal_handler(source),
+			"rename", SourceRenamed, this))
+	{}
+
+private:
+	static void SourceRenamed(void *param, calldata_t *data);
+	std::shared_ptr<OBSSignal> renamedSignal;
+};
 
 class SceneSwitcher : public QDialog {
 	Q_OBJECT
@@ -42,6 +65,11 @@ public slots:
 	void on_noMatchSwitchScene_currentTextChanged(const QString &text);
 	void on_checkInterval_valueChanged(int value);
 	void on_toggleStartButton_clicked();
+private:
+	void AddAutoSceneSwitcherHotkey(AutoSwitcher *qt);
+	void RemoveAutoSceneSwitcherHotkey(AutoSwitcher *qt);
+
+	std::vector<AutoSwitcher> autosceneSwitch;
 };
 
 void GetWindowList(std::vector<std::string> &windows);
