@@ -3973,20 +3973,6 @@ void OBSBasic::on_scenes_currentItemChanged(QListWidgetItem *current,
 	UNUSED_PARAMETER(prev);
 }
 
-bool OBSBasic::eventFilter(QObject *object, QEvent *event)
-{
-	if (event->type() == QEvent::KeyRelease) {
-		QKeyEvent* key = static_cast<QKeyEvent*>(event);
-		//QString name = "testing";
-		QString name = ui->scenes->currentItem()->text();
-		if (key->key() == Qt::Key_Escape) {
-			ui->scenes->currentItem()->setText(name);
-			return true;
-		}
-	}
-	return false;
-}
-
 void OBSBasic::EditSceneName()
 {
 	QListWidgetItem *item = ui->scenes->currentItem();
@@ -3994,7 +3980,6 @@ void OBSBasic::EditSceneName()
 
 	item->setFlags(flags | Qt::ItemIsEditable);
 	ui->scenes->editItem(item);
-	ui->scenes->installEventFilter(this);
 	item->setFlags(flags);
 }
 
@@ -7292,4 +7277,25 @@ void SceneRenameDelegate::setEditorData(QWidget *editor,
 	QLineEdit *lineEdit = qobject_cast<QLineEdit*>(editor);
 	if (lineEdit)
 		lineEdit->selectAll();
+	char arr[255];
+	//strcpy(arr, lineEdit->text().toWCharArray);
+}
+
+void SceneRenameDelegate::closeEditor(QWidget * editor, QAbstractItemDelegate::EndEditHint hint)
+{
+
+}
+
+bool SceneRenameDelegate::eventFilter(QObject * editor, QEvent * event)
+{
+	if (event->type() == QEvent::KeyRelease) {
+		QKeyEvent* key = static_cast<QKeyEvent*>(event);
+		if (key->key() == Qt::Key_Escape) {
+			QLineEdit *lineEdit = qobject_cast<QLineEdit*>(editor);
+			lineEdit->setText("HELL");
+			return true;
+		}
+	}
+	//closeEditor(editor *, QAbstractItemDelegate::NoHint);
+	return false;
 }

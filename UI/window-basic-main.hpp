@@ -764,7 +764,6 @@ private slots:
 	void MoveSceneToTop();
 	void MoveSceneToBottom();
 
-	bool eventFilter(QObject *object, QEvent *event);
 	void EditSceneName();
 	void EditSceneItemName();
 
@@ -826,9 +825,12 @@ private:
 
 class SceneRenameDelegate : public QStyledItemDelegate {
 	Q_OBJECT
-
 public:
 	SceneRenameDelegate(QObject *parent);
 	virtual void setEditorData(QWidget *editor, const QModelIndex &index)
 		const override;
+	void closeEditor(QWidget *editor, QAbstractItemDelegate::EndEditHint hint = NoHint);
+	bool eventFilter(QObject *editor, QEvent *event);
+private:
+
 };
