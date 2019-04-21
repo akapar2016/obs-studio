@@ -249,6 +249,19 @@ OBSBasic::OBSBasic(QWidget *parent)
 	qRegisterMetaType<OBSSource>   ("OBSSource");
 	qRegisterMetaType<obs_hotkey_id>("obs_hotkey_id");
 
+	QAction *renameScene = new QAction(ui->scenesDock);
+	renameScene->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(renameScene, SIGNAL(triggered()), this, SLOT(EditSceneName()));
+	ui->scenesDock->addAction(renameScene);
+	renameScene->setShortcut({ Qt::Key_F2 });
+	
+	QAction *renameSource = new QAction(ui->sourcesDock);
+	renameSource->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(renameSource, SIGNAL(triggered()), this,
+		SLOT(EditSceneItemName()));
+	ui->sourcesDock->addAction(renameSource);
+	renameSource->setShortcut({ Qt::Key_F2 });
+
 	qRegisterMetaTypeStreamOperators<
 		std::vector<std::shared_ptr<OBSSignal>>>(
 				"std::vector<std::shared_ptr<OBSSignal>>");
@@ -294,7 +307,7 @@ OBSBasic::OBSBasic(QWidget *parent)
 			ui->statusbar, SLOT(UpdateCPUUsage()));
 	cpuUsageTimer->start(3000);
 
-	QAction *renameScene = new QAction(ui->scenesDock);
+	/*QAction *renameScene = new QAction(ui->scenesDock);
 	renameScene->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(renameScene, SIGNAL(triggered()), this, SLOT(EditSceneName()));
 	ui->scenesDock->addAction(renameScene);
@@ -303,11 +316,11 @@ OBSBasic::OBSBasic(QWidget *parent)
 	renameSource->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(renameSource, SIGNAL(triggered()), this,
 			SLOT(EditSceneItemName()));
-	ui->sourcesDock->addAction(renameSource);
+	ui->sourcesDock->addAction(renameSource);*/
 
 #ifdef __APPLE__
-	renameScene->setShortcut({Qt::Key_Return});
-	renameSource->setShortcut({Qt::Key_Return});
+	//renameScene->setShortcut({Qt::Key_Return});
+	//renameSource->setShortcut({Qt::Key_Return});
 
 	ui->actionRemoveSource->setShortcuts({Qt::Key_Backspace});
 	ui->actionRemoveScene->setShortcuts({Qt::Key_Backspace});
@@ -315,8 +328,8 @@ OBSBasic::OBSBasic(QWidget *parent)
 	ui->action_Settings->setMenuRole(QAction::PreferencesRole);
 	ui->actionE_xit->setMenuRole(QAction::QuitRole);
 #else
-	renameScene->setShortcut({Qt::Key_F2});
-	renameSource->setShortcut({Qt::Key_F2});
+	//renameScene->setShortcut({Qt::Key_F2});
+	//renameSource->setShortcut({Qt::Key_F2});
 #endif
 
 	auto addNudge = [this](const QKeySequence &seq, const char *s)
