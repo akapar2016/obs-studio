@@ -233,6 +233,8 @@ void SceneSwitcher::on_add_clicked()
 					break;
 				}
 			}
+			int idx = (int)autosceneSwitch.size() - 1;
+			AddAutoSceneSwitcherHotkey(&autosceneSwitch[idx]);
 		}
 
 		ui->switches->sortItems();
@@ -256,6 +258,7 @@ void SceneSwitcher::on_remove_clicked()
 			auto &s = *it;
 
 			if (s.window == window) {
+				//RemoveAutoSceneSwitcherHotkey(&s);
 				switches.erase(it);
 				break;
 			}
@@ -329,10 +332,6 @@ void SceneSwitcher::SetStarted()
 	ui->toggleStartButton->setText(obs_module_text("Stop"));
 	ui->pluginRunningText->setText(obs_module_text("Active"));
 
-	int idx = (int)autosceneSwitch.size() - 1;
-	AddAutoSceneSwitcherHotkey(&autosceneSwitch[idx]);
-	obs_hotkey_load(autosceneSwitch[idx].hotkey,
-		hotkeys);
 }
 
 void SceneSwitcher::SetStopped()
@@ -340,8 +339,6 @@ void SceneSwitcher::SetStopped()
 	ui->toggleStartButton->setText(obs_module_text("Start"));
 	ui->pluginRunningText->setText(obs_module_text("Inactive"));
 
-	for (AutoSwitcher &qt : autosceneSwitch)
-		RemoveAutoSceneSwitcherHotkey(&qt);
 }
 
 void SceneSwitcher::on_toggleStartButton_clicked()
