@@ -248,6 +248,18 @@ OBSBasic::OBSBasic(QWidget *parent)
 	qRegisterMetaType<OBSSource>   ("OBSSource");
 	qRegisterMetaType<obs_hotkey_id>("obs_hotkey_id");
 
+	QAction *renameScene = new QAction(ui->scenesDock);
+	renameScene->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(renameScene, SIGNAL(triggered()), this, SLOT(EditSceneName()));
+	ui->scenesDock->addAction(renameScene);
+	renameScene->setShortcut({ Qt::Key_F2 });
+
+	QAction *renameSource = new QAction(ui->sourcesDock);
+	renameSource->setShortcutContext(Qt::WidgetWithChildrenShortcut);
+	connect(renameSource, SIGNAL(triggered()), this,SLOT(EditSceneItemName()));
+	ui->sourcesDock->addAction(renameSource);
+	renameSource->setShortcut({Qt::Key_F2});
+
 	qRegisterMetaTypeStreamOperators<
 		std::vector<std::shared_ptr<OBSSignal>>>(
 				"std::vector<std::shared_ptr<OBSSignal>>");
@@ -293,7 +305,8 @@ OBSBasic::OBSBasic(QWidget *parent)
 			ui->statusbar, SLOT(UpdateCPUUsage()));
 	cpuUsageTimer->start(3000);
 
-	QAction *renameScene = new QAction(ui->scenesDock);
+
+	/*QAction *renameScene = new QAction(ui->scenesDock);
 	renameScene->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(renameScene, SIGNAL(triggered()), this, SLOT(EditSceneName()));
 	ui->scenesDock->addAction(renameScene);
@@ -302,20 +315,20 @@ OBSBasic::OBSBasic(QWidget *parent)
 	renameSource->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 	connect(renameSource, SIGNAL(triggered()), this,
 			SLOT(EditSceneItemName()));
-	ui->sourcesDock->addAction(renameSource);
+	ui->sourcesDock->addAction(renameSource);*/
 
 #ifdef __APPLE__
-	renameScene->setShortcut({Qt::Key_Return});
-	renameSource->setShortcut({Qt::Key_Return});
+	//renameScene->setShortcut({Qt::Key_Return});
+	//renameSource->setShortcut({Qt::Key_Return});
 
 	ui->actionRemoveSource->setShortcuts({Qt::Key_Backspace});
 	ui->actionRemoveScene->setShortcuts({Qt::Key_Backspace});
 
 	ui->action_Settings->setMenuRole(QAction::PreferencesRole);
 	ui->actionE_xit->setMenuRole(QAction::QuitRole);
-#else
-	renameScene->setShortcut({Qt::Key_F2});
-	renameSource->setShortcut({Qt::Key_F2});
+//#else
+	//renameScene->setShortcut({Qt::Key_F2});
+	//renameSource->setShortcut({Qt::Key_F2});
 #endif
 
 	auto addNudge = [this](const QKeySequence &seq, const char *s)
@@ -5670,38 +5683,7 @@ void OBSBasic::on_actionHelpPortal_triggered()
 void OBSBasic::on_actionWebsite_triggered()
 {
 	QUrl url = QUrl("https://obsproject.com", QUrl::TolerantMode);
-	QUrl url1 = QUrl("https://obsproject.com/zh-cn", QUrl::TolerantMode);
-	QUrl url2 = QUrl("https://obsproject.com/cs", QUrl::TolerantMode);
-	QUrl url3 = QUrl("https://obsproject.com/ja", QUrl::TolerantMode);
-	QUrl url4 = QUrl("https://obsproject.com/ko", QUrl::TolerantMode);
-	QUrl url5 = QUrl("https://obsproject.com/de", QUrl::TolerantMode);
-	QUrl url6 = QUrl("https://obsproject.com/eu", QUrl::TolerantMode);
-	QUrl url7 = QUrl("https://obsproject.com/da", QUrl::TolerantMode);
-	QUrl url8 = QUrl("https://obsproject.com/fi", QUrl::TolerantMode);
-	QUrl url9 = QUrl("https://obsproject.com/fr", QUrl::TolerantMode);
-	QUrl url10 = QUrl("https://obsproject.com/hu", QUrl::TolerantMode);
-	if(string(setlocale(LC_ALL,""))=="English_United States.1252")
 		QDesktopServices::openUrl(url);
-	else if (string(setlocale(LC_ALL, "")) == "Chinese(Simplified_China).1252")
-		QDesktopServices::openUrl(url1);
-	else if (string(setlocale(LC_ALL, "")) == "Czech_Czechia.1252")
-		QDesktopServices::openUrl(url2);
-	else if (string(setlocale(LC_ALL, "")) == "Japanese_Japan.1252")
-		QDesktopServices::openUrl(url3);
-	else if (string(setlocale(LC_ALL, "")) == "Korean_korea.1252")
-		QDesktopServices::openUrl(url4);
-	else if (string(setlocale(LC_ALL, "")) == "German_Germany.1252")
-		QDesktopServices::openUrl(url5);
-	else if (string(setlocale(LC_ALL, "")) == "Basques_spain.1252")
-		QDesktopServices::openUrl(url6);
-	else if (string(setlocale(LC_ALL, "")) == "Dansk_Danish.1252")
-		QDesktopServices::openUrl(url7);
-	else if (string(setlocale(LC_ALL, "")) == "Suomi_Finnish.1252")
-		QDesktopServices::openUrl(url8);
-	else if (string(setlocale(LC_ALL, "")) == "France_french.1252")
-		QDesktopServices::openUrl(url9);
-	else if (string(setlocale(LC_ALL, "")) == "Hungarian_hungarian.1252")
-		QDesktopServices::openUrl(url10);
 }
 
 void OBSBasic::on_actionDiscord_triggered()
