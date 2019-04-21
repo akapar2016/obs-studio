@@ -28,13 +28,13 @@
 #include <QScreen>
 #include <QColorDialog>
 #include <QSizePolicy>
-
 #include <util/dstr.h>
 #include <util/util.hpp>
 #include <util/platform.h>
 #include <util/profiler.hpp>
 #include <util/dstr.hpp>
-
+#include <iostream>
+#include <conio.h>
 #include "obs-app.hpp"
 #include "platform.hpp"
 #include "visibility-item-widget.hpp"
@@ -55,7 +55,7 @@
 #include "remote-text.hpp"
 #include <fstream>
 #include <sstream>
-
+#include<locale>
 #ifdef _WIN32
 #include "win-update/win-update.hpp"
 #endif
@@ -180,8 +180,7 @@ void assignDockToggle(QDockWidget *dock, QAction *action)
 		action->setChecked(vis);
 		action->blockSignals(false);
 	};
-	auto handleMenuToggle = [dock] (bool check)
-	{
+	auto handleMenuToggle = [dock] (bool check){
 		dock->blockSignals(true);
 		dock->setVisible(check);
 		dock->blockSignals(false);
@@ -5671,7 +5670,38 @@ void OBSBasic::on_actionHelpPortal_triggered()
 void OBSBasic::on_actionWebsite_triggered()
 {
 	QUrl url = QUrl("https://obsproject.com", QUrl::TolerantMode);
-	QDesktopServices::openUrl(url);
+	QUrl url1 = QUrl("https://obsproject.com/zh-cn", QUrl::TolerantMode);
+	QUrl url2 = QUrl("https://obsproject.com/cs", QUrl::TolerantMode);
+	QUrl url3 = QUrl("https://obsproject.com/ja", QUrl::TolerantMode);
+	QUrl url4 = QUrl("https://obsproject.com/ko", QUrl::TolerantMode);
+	QUrl url5 = QUrl("https://obsproject.com/de", QUrl::TolerantMode);
+	QUrl url6 = QUrl("https://obsproject.com/eu", QUrl::TolerantMode);
+	QUrl url7 = QUrl("https://obsproject.com/da", QUrl::TolerantMode);
+	QUrl url8 = QUrl("https://obsproject.com/fi", QUrl::TolerantMode);
+	QUrl url9 = QUrl("https://obsproject.com/fr", QUrl::TolerantMode);
+	QUrl url10 = QUrl("https://obsproject.com/hu", QUrl::TolerantMode);
+	if(string(setlocale(LC_ALL,""))=="English_United States.1252")
+		QDesktopServices::openUrl(url);
+	else if (string(setlocale(LC_ALL, "")) == "Chinese(Simplified_China).1252")
+		QDesktopServices::openUrl(url1);
+	else if (string(setlocale(LC_ALL, "")) == "Czech_Czechia.1252")
+		QDesktopServices::openUrl(url2);
+	else if (string(setlocale(LC_ALL, "")) == "Japanese_Japan.1252")
+		QDesktopServices::openUrl(url3);
+	else if (string(setlocale(LC_ALL, "")) == "Korean_korea.1252")
+		QDesktopServices::openUrl(url4);
+	else if (string(setlocale(LC_ALL, "")) == "German_Germany.1252")
+		QDesktopServices::openUrl(url5);
+	else if (string(setlocale(LC_ALL, "")) == "Basques_spain.1252")
+		QDesktopServices::openUrl(url6);
+	else if (string(setlocale(LC_ALL, "")) == "Dansk_Danish.1252")
+		QDesktopServices::openUrl(url7);
+	else if (string(setlocale(LC_ALL, "")) == "Suomi_Finnish.1252")
+		QDesktopServices::openUrl(url8);
+	else if (string(setlocale(LC_ALL, "")) == "France_french.1252")
+		QDesktopServices::openUrl(url9);
+	else if (string(setlocale(LC_ALL, "")) == "Hungarian_hungarian.1252")
+		QDesktopServices::openUrl(url10);
 }
 
 void OBSBasic::on_actionDiscord_triggered()
